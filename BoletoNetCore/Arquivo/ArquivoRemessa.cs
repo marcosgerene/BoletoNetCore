@@ -37,6 +37,7 @@ namespace BoletoNetCore
                     valorCobrancaDescontada = 0;
 
                 int tamanhoRegistro;
+                int tamanhoRegistroDetalhe;
 
                 switch (TipoArquivo)
                 {
@@ -52,6 +53,11 @@ namespace BoletoNetCore
                     default:
                         throw new Exception("Layout não encontrado");
                 }
+
+                // Alguns bancos (ex.: Sofisa) estendem o registro de detalhe do CNAB400
+                tamanhoRegistroDetalhe = TipoArquivo == TipoArquivo.CNAB400 && Banco is IBancoRegistroDetalheEstendido detalheEstendido
+                    ? detalheEstendido.TamanhoRegistroDetalheCNAB400
+                    : tamanhoRegistro;
 
                 StreamWriter arquivoRemessa = new StreamWriter(stream, Encoding.GetEncoding("ISO-8859-1"));
                 string strline = string.Empty;
@@ -73,7 +79,7 @@ namespace BoletoNetCore
                     strline = boleto.Banco.GerarDetalheRemessa(TipoArquivo, boleto, ref numeroRegistroGeral);
                     if (string.IsNullOrWhiteSpace(strline))
                         throw new Exception("Registro DETALHE obrigatório.");
-                    strline = FormataLinhaArquivoCNAB(strline, tamanhoRegistro);
+                    strline = FormataLinhaArquivoCNAB(strline, tamanhoRegistroDetalhe);
                     arquivoRemessa.WriteLine(strline);
 
                     var mensagemRemessa = boleto.Banco.GerarMensagemRemessa(TipoArquivo, boleto, ref numeroRegistroGeral);

@@ -164,9 +164,12 @@ namespace BoletoNetCore.Testes
             return boleto;
         }
 
-        internal static void TestarHomologacao(IBanco banco, TipoArquivo tipoArquivo, string nomeCarteira, int quantidadeBoletos, bool gerarBoletoPdfHtml, string aceite, int NossoNumeroInicial)
+        internal static void TestarHomologacao(IBanco banco, TipoArquivo tipoArquivo, string nomeCarteira, int quantidadeBoletos, bool gerarBoletoPdfHtml, string aceite, int NossoNumeroInicial, Action<Boleto> ajustarBoleto = null)
         {
             var boletos = GerarBoletos(banco, quantidadeBoletos, aceite, NossoNumeroInicial);
+            if (ajustarBoleto != null)
+                foreach (var boleto in boletos)
+                    ajustarBoleto(boleto);
             Assert.AreEqual(quantidadeBoletos, boletos.Count, "Quantidade de boletos diferente de " + quantidadeBoletos);
 
             // Define os nomes dos arquivos, cria pasta e apaga arquivos anteriores
